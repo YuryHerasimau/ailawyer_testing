@@ -1,4 +1,5 @@
 import pytest
+import allure
 from pages.chat_page import ChatPage
 from playwright.sync_api import expect
 
@@ -16,6 +17,7 @@ CRAZY_MODE_OPTIONS = [
     (False, "disable")
 ]
 
+@allure.feature("Настройки чата")
 @pytest.mark.critical
 class TestChatSettings:
     def test_open_chat_settings(self, chat_page: ChatPage):

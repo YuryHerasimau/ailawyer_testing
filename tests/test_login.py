@@ -1,5 +1,6 @@
 import os
 import pytest
+import allure
 from playwright.sync_api import expect
 from dotenv import load_dotenv
 from pages.login_page import LoginPage
@@ -13,6 +14,9 @@ def google_credentials():
         "password": os.getenv("GOOGLE_PASS")
     }
 
+
+@allure.feature("Авторизация")
+@allure.title("Тест авторизации через Google")
 @pytest.mark.smoke
 def test_login(page, google_credentials):
     """Тест авторизации через Google"""

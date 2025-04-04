@@ -124,6 +124,26 @@ PWDEBUG=console pytest -k 'test_initial_ai_greeting'
 playwright codegen --ignore-https-errors https://app.ailawyer.pro
 ```
 
+## Generate Allure Report
+
+1. Generate Allure report:
+
+```bash
+allure generate reports -o allure-report --clean
+```
+
+2. View the Allure report:
+
+```bash
+allure open allure-report
+```
+
+Alternatively, you can serve the report directly from the results directory using:
+
+``` bash
+allure serve reports
+```
+
 # Contributing
 
 1.  Create feature branch:

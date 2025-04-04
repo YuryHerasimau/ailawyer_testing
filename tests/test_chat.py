@@ -1,8 +1,10 @@
 import pytest
+import allure
 from pages.chat_page import ChatPage
 from playwright.sync_api import expect
 
 
+@allure.feature("Чат")
 class TestChat:
     @pytest.mark.smoke
     def test_initial_ai_greeting(self, chat_page: ChatPage):
