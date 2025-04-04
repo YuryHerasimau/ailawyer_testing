@@ -23,36 +23,36 @@ def browser():
 def context(browser):
     """Создание контекста с настройками"""
     context = browser.new_context(
-        viewport={"width": 1700, "height": 1000}
+        viewport={"width": 1700, "height": 1000},
     )
     yield context
     context.close()
 
 @pytest.fixture
 def page(context):
-    """Создание новой страницы"""
+    """Создание новой страницы с таймаутами"""
     page = context.new_page()
+    page.set_default_timeout(10000)  # 10 секунд таймаут по умолчанию
+    page.set_default_navigation_timeout(20000)
     yield page
     page.close()
 
 @pytest.fixture
 def login_page(page):
+    """Фикстура для страницы логина"""
     return LoginPage(page)
 
 @pytest.fixture
 def authed_page(page):
-    """Фикстура для авторизованной страницы"""
     login_page = LoginPage(page)
     login_page.navigate()
     
-    # Выполняем авторизацию
     google_auth_page = login_page.login(
-        role="Test", 
+        role="Test",
         email=os.getenv("GOOGLE_EMAIL"),
         password=os.getenv("GOOGLE_PASS")
     )
     
-    # Возвращаем авторизованную страницу
     expect(page).to_have_url("https://app.ailawyer.pro/chats/", timeout=30000)
     return page
 

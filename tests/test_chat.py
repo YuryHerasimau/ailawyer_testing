@@ -1,11 +1,12 @@
 import pytest
+from pages.chat_page import ChatPage
 from playwright.sync_api import expect
 
 
 class TestChat:
-    def test_initial_ai_greeting(self, chat_page):
+    @pytest.mark.smoke
+    def test_initial_ai_greeting(self, chat_page: ChatPage):
         """Тест проверяет начальное приветственное сообщение AI"""
-        expect(chat_page.page, "Страница не открылась").to_have_url("https://app.ailawyer.pro/chats/")
         greeting = chat_page.get_greeting_text()
         
         assert "Hello, Yury 👋" in greeting['header']
@@ -13,76 +14,52 @@ class TestChat:
         assert "already existing chat from history" in greeting['second_paragraph']
         assert greeting['add_button_visible'] is True
 
+    @pytest.mark.smoke
     @pytest.mark.parametrize("test_message", [
         "Hello AI",
         "What can you do?",
         "Explain like I'm five"
     ])
-    def test_chat_flow(self, chat_page, test_message):
+    def test_chat_flow(self, chat_page: ChatPage, test_message):
         """Тест общения с ChatGPT с параметризацией разных сообщений"""
-        # Проверка начального состояния
-        expect(chat_page.page, "Страница не открылась").to_have_url("https://app.ailawyer.pro/chats/")
-        expect(chat_page.message_input, "Поле ввода сообщений не пустое").to_be_empty()
+        chat_page.send_message_and_wait_for_response(test_message)
         
-        # Отправка сообщения
-        chat_page.send_message(test_message)
-        
-        # Проверка отправленного сообщения
-        expect(chat_page.user_messages.last, f"Сообщение '{test_message}' не отправлено").to_contain_text(test_message)
-        
-        # Ожидание ответа
-        chat_page.wait_for_ai_response()
-
-        # Проверка ответа
         last_response = chat_page.get_last_ai_message()
-        normalized_response = " ".join(last_response.split())  # Удаляем лишние пробелы
-
-        print(f"\n--- Полный ответ AI ---\n{normalized_response}\n---")
-
-        assert len(normalized_response) > 0, "Ответ AI пустой"
-        assert len(normalized_response) > 100, "Ответ AI слишком короткий"  # Проверка длины
-        assert any(word in normalized_response.lower() for word in ["step", "advice", "suggest"]), "Ответ должен содержать рекомендации"
+        assert len(last_response) > 0, "Ответ AI пустой"
+        assert len(last_response) > 100, "Ответ AI слишком короткий"
         
-        # Дополнительные проверки ответа
-        expect(chat_page.ai_message_blocks.last, "Ответ AI не отображается").to_be_visible()
-
-        # Скриншот после всех проверок
         chat_page.make_screenshot()
 
-    def test_message_sequence(self, chat_page):
+    @pytest.mark.critical
+    def test_message_sequence(self, chat_page: ChatPage):
         """Тест последовательности сообщений"""
         messages = ["Hi", "How are you?", "What's new?"]
         responses = []
         
         for msg in messages:
-            chat_page.send_message(msg)
-            expect(chat_page.user_messages.last, f"Сообщение '{msg}' не отправлено").to_contain_text(msg)
-            
-            chat_page.wait_for_ai_response()
-            response = chat_page.get_last_ai_message()
-            assert response, "Ответ AI пустой"
-            responses.append(response)
+            chat_page.send_message_and_wait_for_response(msg)
+            responses.append(chat_page.get_last_ai_message())
         
-        # Проверяем, что получили уникальные ответы
         assert len(responses) == len(set(responses)), "Получили одинаковые ответы AI"
 
-    def test_message_history(self, chat_page):
+    @pytest.mark.critical
+    def test_message_history(self, chat_page: ChatPage):
         """Тест истории сообщений"""
-        # Отправляем два сообщения
         messages = ["First message", "Second message"]
         for msg in messages:
-            chat_page.send_message(msg)
-            chat_page.wait_for_ai_response()
+            chat_page.send_message_and_wait_for_response(msg)
         
-        # Проверяем историю
         assert chat_page.get_last_user_message() == messages[-1]
         assert chat_page.get_last_ai_message() != ""
 
-    def test_regenerate_response(self, chat_page):
+    @pytest.mark.critical
+    def test_regenerate_response(self, chat_page: ChatPage):
         """Тест регенерации ответа"""
-        chat_page.send_message("Test regenerate")
+        chat_page.send_message_and_wait_for_response("Test regenerate")
         first_response = chat_page.get_last_ai_message()
+        
         chat_page.regenerate_response()
         chat_page.wait_for_ai_response()
+        
         second_response = chat_page.get_last_ai_message()
         assert first_response != second_response

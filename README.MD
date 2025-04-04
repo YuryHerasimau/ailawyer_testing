@@ -2,31 +2,22 @@
 
 ## Overview
 
-AI Lawyer Testing Framework is a testing framework designed to automate UI testing for the legal AI assistant.
+End-to-end test automation framework for AI Lawyer web application using Playwright and Pytest. Implements Page Object Model (POM) pattern for maintainable and scalable test architecture.
 
-## About Playwright
+## Key Features
 
-Playwright works with three different layers that build on each other: `Browser`, `Context` and `Page`.
-
-* **Browsers**
-
-    Each version of Playwright requires specific browser versions to run. Unlike Selenium, Playwright does not use webdriver. With each new release, Playwright updates the browser versions it supports. This means that every time you update Playwright, you may have to re-run the ```playwright install``` command
-
-    For `Google Chrome`, `Microsoft Edge` and `other Chromium-based browsers`, Playwright uses open-source Chromium builds by default.
-
-* **BrowserContext**
-
-    Playwright uses browser contexts to achieve test isolation. Pages in two separate contexts do not share cookies, profile settings. A context is an independent browser session, similar to incognito mode. Unlike `Selenium`, they do not require their own browser process. A test can simply open a new context to get a clean environment. Typically, each test has its own context.
-
-* **Pages**
-
-    A Page contains the content of the loaded website. Each Context can have multiple pages. It is used to navigate URLs and interact with the page content.
+- 🚀 **Cross-browser testing** support (Chromium, Firefox, WebKit)
+- 📄 **Page Object Model** for clean separation of concerns
+- 🔐 **Secure credential handling** via environment variables
+- 📊 **Parallel test execution** capability
+- 🎥 **Auto-waiting and tracing** built-in
+- 🔍 **Powerful locators** with text, CSS and XPath support
 
 ## Project structure
 
 ```
 ailawyer_testing/
-├── pages/                     # Page objects
+├── pages/                     # Page Object classes
 │   ├── login_page.py
 │   ├── google_auth_page.py
 │   └── chat_page.py
@@ -43,64 +34,66 @@ ailawyer_testing/
 └── requirements.txt
 ```
 
-# Technologies Used
+# Technology Stack
 
-* `Python 3.x` – Main programming language
-* `pytest` – Testing framework
-* `requests`
-* `playwright`
-* `pytest-playwright`
+| Component       | Technology |
+|----------------|------------|
+| Test Runner    | Pytest |
+| Browser Automation | Playwright |
+| Language       | Python 3.10+ |
+| Reporting      | Built-in Playwright traces |
+| CI/CD Ready    | GitHub Actions compatible |
 
 # Getting Started
 
+### Prerequisites
+
+- Python 3.10+
+- Git
+
 ## Installation
 
-Clone the repository:
+1. Clone repository:
 ``` bash
 git clone https://github.com/YuryHerasimau/ailawyer_testing.git
 cd ailawyer_testing
 ```
 
-Create and activate a virtual environment:
+2. Set up virtual environment::
 ``` bash
 python -m venv env
 source env/bin/activate  # On Windows use: env\Scripts\activate
 ```
 
-Install dependencies:
+3. Install dependencies:
 ``` bash
 pip install -r requirements.txt
-```
-
-After installing `playwright`, install the necessary browsers:
-```bash
 playwright install
 ```
 
-Playwright downloads Chromium, WebKit, and Firefox browsers to OS cache folders:
+## Configuration
 
-* %USERPROFILE%\AppData\Local\ms-playwright # on Windows
-* ~/Library/Caches/ms-playwright # on MacOS
-* ~/.cache/ms-playwright # on Linux
-
-Playwright downloads three browsers by default: Chromium, Firefox, and WebKit.
-
-To install a specific browser, pass it as an argument during installation
-
-```bash
-playwright install firefox
+1. Create `.env` file:
+```ini
+GOOGLE_EMAIL=your@email.com
+GOOGLE_PASS=yourpassword
 ```
 
-Recording a Script with Codegen
-```bash
-playwright codegen --ignore-https-errors https://app.ailawyer.pro
+2. Configure test options in `pytest.ini`:
+```ini
+[pytest]
+addopts = -v --headed
+markers =
+    smoke: most critical tests
+    regression: full feature tests
+    flaky: mark flaky tests to rerun
 ```
 
 ## Running Tests
 
 Run all tests:
 ``` bash
-pytest
+
 ```
 
 Run specific test file:
@@ -108,33 +101,44 @@ Run specific test file:
 pytest tests/test_prompts.py
 ```
 
-## Debug
+| Command       | Description |
+|----------------|------------|
+| `pytest`    | Run all tests |
+| `pytest tests/test_prompts.py` | Run specific test suite |
+| `pytest -k test_select_prompt` | Run specific test case |
+| `pytest -m smoke`       | Run smoke tests only |
 
-Debug tools
+## Debugging Tests
+
+1. Run with debug mode:
 ```bash
-PWDEBUG=1 pytest -k 'test_initial_ai_greeting'
+PWDEBUG=1 pytest tests/test_login.py
 ```
-
+or
 ```bash
 PWDEBUG=console pytest -k 'test_initial_ai_greeting'
 ```
 
-## Configuration
-
-Configure test behavior in `pytest.ini`:
-
-```ini
-[pytest]
-addopts = -v --headed
-testpaths = tests
-python_files = test_*.py
-python_functions = test_*
+2. Record new test:
+```bash
+playwright codegen --ignore-https-errors https://app.ailawyer.pro
 ```
 
 # Contributing
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+1.  Create feature branch:
+```bash
+git checkout -b feature/new-test-module
+```
+
+2. Add tests following POM pattern
+3. Verify tests pass:
+```bash
+pytest && flake8
+```
+
+4. Submit pull request with:
+
+* Description of changes
+* Screenshots if UI changes
+* Updated documentation
