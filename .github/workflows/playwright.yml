@@ -12,6 +12,9 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     env:
+      BASE_URL: ${{ secrets.BASE_URL }}
+      LOGIN_URL: ${{ secrets.BASE_URL }}/login/
+      CHATS_URL: ${{ secrets.BASE_URL }}/chats/
       GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
       GOOGLE_PASS: ${{ secrets.GOOGLE_PASS }}
       GOOGLE_PHONE: ${{ secrets.GOOGLE_PHONE }}
