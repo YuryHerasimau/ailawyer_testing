@@ -1,0 +1,2 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"Тест авторизации через Google","33479","Тест авторизации через Google","tests","Thu Apr 10 18:13:01 GMT 2025","passed","Thu Apr 10 18:13:35 GMT 2025","","test_login","",""
