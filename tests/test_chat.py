@@ -1,7 +1,7 @@
 import pytest
 import allure
 from pages.chat_page import ChatPage
-from playwright.sync_api import expect
+import re
 
 
 @allure.feature("Чат")
@@ -12,8 +12,8 @@ class TestChat:
         greeting = chat_page.get_greeting_text()
         
         assert "Hello, Yury 👋" in greeting['header']
-        assert "Please select a question" in greeting['first_paragraph']
-        assert "already existing chat from history" in greeting['second_paragraph']
+        assert "Please select a question" in greeting['paragraphs'][0]
+        assert "already existing chat from history" in greeting['paragraphs'][1]
         assert greeting['add_button_visible'] is True
 
 
@@ -29,8 +29,8 @@ class TestChat:
         last_response = chat_page.get_last_ai_message()
         assert len(last_response) > 0, "Ответ AI пустой"
         assert len(last_response) > 100, "Ответ AI слишком короткий"
-        
-        chat_page.make_screenshot()
+
+        chat_page.take_screenshot("chat_flow_")
 
 
     def test_message_sequence(self, chat_page: ChatPage):

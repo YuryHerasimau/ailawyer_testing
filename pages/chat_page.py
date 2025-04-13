@@ -1,10 +1,16 @@
 import time
+from typing import Any, Dict, List
+from pages.base_page import BasePage
 from playwright.sync_api import Page, expect
 
 
-class ChatPage:
+class ChatPage(BasePage):
     def __init__(self, page: Page):
-        self.page = page
+        super().__init__(page)
+        self._init_locators()
+
+    def _init_locators(self):
+        """Инициализация всех локаторов"""
         self._init_welcome_locators()
         self._init_input_locators()
         self._init_message_locators()
@@ -105,98 +111,101 @@ class ChatPage:
     # Методы для работы с промптами
     def open_prompts_popup(self):
         """Открывает попап с промптами"""
-        self.prompts_button.click()
-        expect(self.prompts_popup).to_be_visible()
+        self.click(self.prompts_button)
+        self.wait_for_visible(self.prompts_popup)
 
     def close_prompts_popup(self):
         """Закрывает попап с промптами"""
-        self.prompts_close_button.click()
-        expect(self.prompts_popup).not_to_be_visible()
+        self.click(self.prompts_close_button)
+        self.wait_for_hidden(self.prompts_popup)
 
     def expand_prompt_category(self, category_name):
         """Разворачивает категорию промптов"""
-        category_locator = self.prompts_categories.get(category_name.lower().replace(" ", "_"))
+        normalized_name = category_name.lower().replace(" ", "_")
+        category_locator = self.prompts_categories.get(normalized_name)
         if category_locator:
-            category_locator.click()
+            self.click(category_locator)
         else:
             raise ValueError(f"Категория '{category_name}' не найдена")
 
     def select_prompt_by_text(self, prompt_text):
         """Выбирает промпт по тексту"""
         prompt_item = self.page.locator(f'div.bg-openFolder div.flex:has-text("{prompt_text}")').first
-        expect(prompt_item).to_be_visible()
-        prompt_item.click()
+        self.wait_for_visible(prompt_item)
+        self.click(prompt_item)
 
     def create_new_prompt(self, prompt_text, save=True):
         """Создает новый промпт"""
-        self.create_new_prompt_button.click()
-        expect(self.create_prompt_form_title).to_be_visible()
+        self.click(self.create_new_prompt_button)
+        self.should_be_visible(self.create_prompt_form_title)
         
-        self.prompt_input_field.fill(prompt_text)
-        expect(self.prompt_input_field).to_have_value(prompt_text)
+        self.fill(self.prompt_input_field, prompt_text)
+        self.should_have_text(self.prompt_input_field, prompt_text)
         
         if save:
-            self.save_prompt_button.click()
+            self.click(self.save_prompt_button)
         else:
-            self.cancel_prompt_button.click()
-        expect(self.create_prompt_form_title).not_to_be_visible()
+            self.click(self.cancel_prompt_button)        
+        self.wait_for_hidden(self.create_prompt_form_title)
 
     def delete_prompt(self, prompt_text):
         """Удаляет промпт"""
         prompt_item = self.page.locator(f'div.bg-openFolder div.flex:has-text("{prompt_text}")').first
         prompt_item.hover()
         
-        self.prompt_menu_button.click()
-        self.delete_prompt_button.click()
+        self.click(self.prompt_menu_button)
+        self.click(self.delete_prompt_button)
         
-        expect(self.page.locator('text=Delete prompt?')).to_be_visible()
-        self.delete_prompt_confirm.click()
-        expect(prompt_item).not_to_be_visible()
+        self.should_be_visible(self.page.locator('text=Delete prompt?'))
+        self.click(self.delete_prompt_confirm)
+        self.wait_for_hidden(prompt_item)
 
     # Остальные методы класса остаются без изменений
-    def get_greeting_text(self) -> dict:
+    def get_greeting_text(self) -> Dict[str, Any]:
         """Возвращает все части приветственного сообщения в виде словаря"""
         return {
-            'header': self.greeting_header.text_content(),
-            'first_paragraph': self.greeting_paragraphs.nth(0).text_content(),
-            'second_paragraph': self.greeting_paragraphs.nth(1).text_content(),
+            'header': self.get_text(self.greeting_header),
+            # 'first_paragraph': self.get_text(self.greeting_paragraphs.nth(0)),
+            # 'second_paragraph': self.get_text(self.greeting_paragraphs.nth(1)),
+            'paragraphs': [self.get_text(p) for p in self.greeting_paragraphs.all()],
             'add_button_visible': self.add_button.is_visible()
         }
 
     def send_message(self, text: str, wait_for_input_empty=True):
         """Отправляет сообщение в чат"""
-        self.message_input.fill(text)
-        expect(self.message_input).to_have_value(text)  # Проверка что текст введен
-        self.send_button.click()
+
+        self.fill(self.message_input, text)
+        self.should_have_text(self.message_input, text) # Проверка что текст введен
+        self.click(self.send_button)
 
         if wait_for_input_empty:
-            expect(self.message_input).to_be_empty() # Поле очистилось после отправки
+            self.should_be_empty(self.message_input) # Поле очистилось после отправки
 
     def get_last_ai_message(self, timeout=30000) -> str:
         """Возвращает текст последнего сообщения от AI"""
         last_message_block = self.ai_message_blocks.last
-        expect(last_message_block).to_be_visible(timeout=timeout)
+        self.wait_for_visible(last_message_block, timeout=timeout)
 
         # Объединяем текст всех параграфов в блоке
         paragraphs = last_message_block.locator('p')
-        expect(paragraphs.first).to_be_visible(timeout=timeout)
+        self.wait_for_visible(paragraphs.first, timeout=timeout)
 
         return " ".join([p.text_content() for p in paragraphs.all() if p.text_content().strip()])
 
     def get_last_user_message(self) -> str:
         """Возвращает текст последнего сообщения пользователя"""
-        return self.user_messages.last.text_content()
+        return self.get_text(self.user_messages.last)
 
     def regenerate_response(self):
         """Регенерирует последний ответ"""
-        self.regenerate_button.click()
+        self.click(self.regenerate_button)
 
     def wait_for_ai_response(self, timeout=30000):
         """Ждет ПОЛНОГО ответа AI (со стабилизацией текста)"""
         last_block = self.ai_message_blocks.last
         
         # Ждем появления блока
-        expect(last_block).to_be_visible(timeout=timeout)
+        self.wait_for_visible(last_block, timeout=timeout)
         
         # Ждем стабилизации текста (3 проверки подряд с интервалом 1 сек)
         stable_text = ""
@@ -204,7 +213,7 @@ class ChatPage:
         start_time = time.time()
         
         while stable_count < 3 and (time.time() - start_time) < timeout:
-            current_text = last_block.text_content()
+            current_text = self.get_text(last_block)
             if current_text == stable_text:
                 stable_count += 1
             else:
@@ -215,48 +224,42 @@ class ChatPage:
         if stable_count < 3:
             raise TimeoutError("AI response did not stabilize")
 
-    def make_screenshot(self, name="screenshot"):
-        """Делает скриншот с timestamp"""
-        import datetime
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.page.screenshot(path=f"screenshots/{name}_{timestamp}.png")
-
     def configure_chat_settings(self, complexity="Professional", crazy_mode=False):
         """Настраивает параметры чата"""
-        self.chat_settings_button.click()
-        expect(self.settings_popup).to_be_visible()
+        self.click(self.chat_settings_button)
+        self.wait_for_visible(self.settings_popup)
 
         # Ждём появления всех лейблов
-        expect(self.professional_label).to_be_visible()
-        expect(self.regular_label).to_be_visible()
-        expect(self.simple_label).to_be_visible()
+        self.wait_for_visible(self.professional_label)
+        self.wait_for_visible(self.regular_label)
+        self.wait_for_visible(self.simple_label)
 
         # Выбираем уровень сложности языка AI (кликаем на label)
         if complexity == "Professional":
-            self.professional_label.click()
+            self.click(self.professional_label)
         elif complexity == "Regular":
-            self.regular_label.click()
+            self.click(self.regular_label)
         elif complexity == "Simple":
-            self.simple_label.click()
+            self.click(self.simple_label)
         
         # Если Crazy Mode не активирован, то активируем
         current_state = self.crazy_mode_toggle.locator('input').is_checked()
         if crazy_mode != current_state:
-            self.crazy_mode_toggle.click()
+            self.click(self.crazy_mode_toggle)
         
         # Закрываем попап (клик вне попапа)
-        self.chat_title.click()
-        expect(self.settings_popup).not_to_be_visible()
+        self.click(self.chat_title)
+        self.wait_for_hidden(self.settings_popup)
 
     def open_chat_settings(self):
         """Открывает настройки чата"""
-        self.chat_settings_button.click()
-        expect(self.settings_popup).to_be_visible()
+        self.click(self.chat_settings_button)
+        self.wait_for_visible(self.settings_popup)
     
     def close_chat_settings(self):
         """Закрывает настройки чата"""
-        self.chat_title.click()
-        expect(self.settings_popup).not_to_be_visible()
+        self.click(self.chat_title)
+        self.wait_for_hidden(self.settings_popup)
     
     def send_message_and_wait_for_response(self, text: str):
         """Отправляет сообщение и ждет ответа"""
