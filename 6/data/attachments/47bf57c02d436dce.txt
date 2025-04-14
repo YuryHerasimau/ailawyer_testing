@@ -1,0 +1,1 @@
+INFO     pages.base_page:base_page.py:18 Navigated to URL: https://app.ailawyer.pro/login/

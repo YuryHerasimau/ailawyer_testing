@@ -1,0 +1,6 @@
+INFO     pages.base_page:base_page.py:18 Navigated to URL: https://app.ailawyer.pro/login/
+INFO     pages.base_page:base_page.py:18 Navigated to URL: https://app.ailawyer.pro/login/
+INFO     pages.google_auth_page:google_auth_page.py:20 Entering email...
+INFO     pages.google_auth_page:google_auth_page.py:29 Entering password...
+INFO     pages.base_page:base_page.py:100 Screenshot saved to: screenshots/password_entry_failed_20250414_120802.png
+INFO     pages.base_page:base_page.py:100 Screenshot saved to: screenshots/login_failed_20250414_120802.png
