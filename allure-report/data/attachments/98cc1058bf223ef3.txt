@@ -1,2 +1,0 @@
-[32mINFO    [0m pages.base_page:base_page.py:18 Navigated to URL: https://app.ailawyer.pro/login/
-[32mINFO    [0m conftest:conftest.py:37 Screenshot saved to screenshots/failure_test_invalid_email_registration_   _.png

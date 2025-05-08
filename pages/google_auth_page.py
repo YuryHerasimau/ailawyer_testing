@@ -1,4 +1,5 @@
 import logging
+import re
 from pages.base_page import BasePage
 from playwright.sync_api import Page
 from utils.captcha import check_captcha
@@ -10,9 +11,9 @@ logger = logging.getLogger(__name__)
 class GoogleAuthPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
-        self.email_field = page.get_by_role("textbox", name="Email or phone")
-        self.password_field = page.get_by_role("textbox", name="Enter your password")
-        self.next_button = page.get_by_role("button", name="Next")
+        self.email_field = page.get_by_role("textbox", name=re.compile(r"(Email or phone|Телефон или адрес эл. почты)"))
+        self.password_field = page.get_by_role("textbox", name=re.compile(r"(Enter your password|Введите пароль)"))
+        self.next_button = page.get_by_role("button", name=re.compile(r"(Next|Далее)"))
         self.verification_required = False
 
     def enter_email(self, email: str):
